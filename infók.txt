@@ -1,0 +1,55 @@
+  0         1         2         3		┌218 ┐191 └192 ┘217 ─196 │179 ┼197
+  0123456789012345678901234567890123456789	
+00 agyu[3]={00,01,02} | gameTick=00		░176 ▒177 ▓178 
+ 1┌───────────────────────────────┐		
+ 2│▓▒▒▓▒▓▓▒▒                      │		║186 ╔201 ╩202 ╗187
+ 3│ ▒▒▒▒▓▒▓                       │
+ 4│  ▓                            │
+ 5│                               │
+ 6│                               │
+ 7│                               │
+ 8│                               │
+ 9│                               │
+10│                               │
+ 1│                               │
+ 2│                               │
+ 3│                               │
+ 4│    ║                          │
+ 5└───╔╩╗─────────────────────────┘
+ 6
+ 7
+ 8
+ 9
+20
+
+tégla lehet: üres, tégla1, tégla2, tégla3
+
+VÁLTOZÓK
+
+* Globális *
+Időmérés (game tick)		gameTick	unsigned long long
+
+* main() *
+Téglák				teglak		JM*JSZ elemű, kétdimenziós char tömb
+Ágyú pozíciója			agyu		3 emelmű, egydimenziós int tömb
+Parancs				parancs		unsigned char
+Történés jelző			valtozas	bool
+
+  5 #define KSZ 60                      // Kepernyo szelessege
+  6 #define KM 20                       // Kepernyo magassaga
+  7 #define JSZ 30                      // Jatekter szelessege
+  8 #define JM 15                       // Jatekter magassaga
+  9 #define FUGGOLEGES 179              // - Jatekter függőleges oldala
+ 10 #define VIZSZINTES 196              // ¦ Jatekter vízszintes oldala
+ 11 #define BAL_FELSO_SAROK 218         // - Jatekter bal felso sarka
+ 12 #define JOBB_FELSO_SAROK 191	// ¬ Jatekter jobb felso sarka
+ 13 #define BAL_ALSO_SAROK 192          // L Jatekter bal also sarka
+ 14 #define JOBB_ALSO_SAROK 217         // - Jatekter jobb also sarka
+ 16 #define AGYUCSO 186                 // agyucso
+ 17 #define AGYU_TALP_BAL 201
+ 18 #define AGYU_TALP_KOZEP 202
+ 19 #define AGYU_TALP_JOBB 187
+ 23 struct tabla {
+ 25         unsigned char tegla[JM][JSZ] = {32};
+ 26         char legfelsoSor = 0;
+ 27         char utolsoSor = 0; };
