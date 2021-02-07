@@ -48,11 +48,15 @@ void agyuMozgatasa(int* agyu, char irany)
 
 void teglakRajzolasa(tabla& teglak, int i)
 {
+#define TABLA_SZELE ((i==teglak.utolsoSor?char(UTOLSO_SOR_JEL):char(FUGGOLEGES)))
+
 	i<10 ? std::cout<<" "<<i : std::cout<<i;	//debug
-	std::cout<<(i==teglak.utolsoSor?char(UTOLSO_SOR_JEL):char(FUGGOLEGES));
+	std::cout<<TABLA_SZELE;
 	for (int j=0;j<JSZ;j++) std::cout<<char(teglak.tegla[i][j]);
-	std::cout<<(i==teglak.utolsoSor?char(UTOLSO_SOR_JEL):char(FUGGOLEGES));
+	std::cout<<TABLA_SZELE;
 	std::cout<<std::endl;
+
+#undef TABLA_SZELE
 }
 
 void kepernyoRajzolasa(tabla& teglak, int* agyu, bool& valtozas, ull gameTick)
@@ -134,17 +138,19 @@ void teglaGeneralas(tabla& teglak, bool& valtozas)
 
 void loves(tabla& teglak, int* agyu, bool& valtozas, long& pontszam)
 {
+#define AGYUCSO (agyu[1]-1)
 	// itt esetleg gond lehet az ellenorzessel,
 	// mert ha pl. a legfelso sor 1 az utolso sor 0 akkor nem mukodik.
 	int i=teglak.utolsoSor;
 // d	std::cout<<"LFS:"<<teglak.legfelsoSor<<"|"<<teglak.tegla[i][agyu[1]-1]<<std::endl;
-	while (teglak.tegla[i][agyu[1]-1]==' ' && i>teglak.legfelsoSor){std::cout<<"i="<<i<<std::endl;
+	while (teglak.tegla[i][AGYUCSO]==' ' && i>teglak.legfelsoSor){std::cout<<"i="<<i<<std::endl;
 		leptet(i,JM,'-');
 	}
 
 	std::cout<<"i talalat:"<<i<<std::endl;
-	if (teglak.tegla[i][agyu[1]-1]==177 || teglak.tegla[i][agyu[1]-1]==178) teglak.tegla[i][agyu[1]-1]--;
-	else if (teglak.tegla[i][agyu[1]-1]==176) teglak.tegla[i][agyu[1]-1]=' ';
+	// ide kell pontszamitas
+	if (teglak.tegla[i][AGYUCSO]==177 || teglak.tegla[i][AGYUCSO]==178) teglak.tegla[i][AGYUCSO]--;
+	else if (teglak.tegla[i][AGYUCSO]==176) teglak.tegla[i][AGYUCSO]=' ';
 	if (i==teglak.utolsoSor)
 	{
 		bool nincsTegla=true;
@@ -161,6 +167,7 @@ void loves(tabla& teglak, int* agyu, bool& valtozas, long& pontszam)
 	}
 	valtozas=true;
 // d	std::cin.get();
+#undef AGYUCSO
 }
 
 bool kerdes(std::string szoveg)
