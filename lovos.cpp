@@ -2,11 +2,16 @@
 #include <conio.h>
 #include <string>
 #include <iomanip>
+#include <stdlib.h>
 
-#define KSZ 60					// Kepernyo szelessege
-#define KM 20					// Kepernyo magassaga
+// egy idoegyseg a jatekban, programciklusban kifejezve
+#define DEFAULT_TICKSPEED 350000
+
+// jatektabla merete
 #define JSZ 30					// Jatekter szelessege
 #define JM 15					// Jatekter magassaga
+
+// rajzolo karakterek
 #define FUGGOLEGES 179			// - Jatekter függőleges oldala
 #define VIZSZINTES 196			// ¦ Jatekter vízszintes oldala
 #define BAL_FELSO_SAROK 218		// - Jatekter bal felso sarka
@@ -14,26 +19,27 @@
 #define BAL_ALSO_SAROK 192		// L Jatekter bal also sarka
 #define JOBB_ALSO_SAROK 217		// - Jatekter jobb also sarka
 #define UTOLSO_SOR_JEL 197
-
-#define AGYUCSO 186			// agyucso
+#define AGYU_CSO 186			// agyucso
 #define AGYU_TALP_BAL 201
 #define AGYU_TALP_KOZEP 202
 #define AGYU_TALP_JOBB 187
-
-#define ONETICK 350000
+#define TEGLA1 176
+#define TEGLA2 177
+#define TEGLA3 178
 
 typedef unsigned long long ull;
+typedef unsigned char byte;
 
 struct tabla
 {
-	unsigned char tegla[JM][JSZ]={32};
+	byte tegla[JM][JSZ]={32};
 	int legfelsoSor=0;
 	int utolsoSor=0;
 };
 
 char jatekosIranyitasa(bool& valtozas)
 {
-	unsigned char parancs='0';
+	byte parancs='0';
 	if (_kbhit()) parancs=_getch();
 	if (parancs!='a' && parancs!='d' && parancs!=' ' && int(parancs)!=27) parancs='0';
 	else valtozas=true;
@@ -46,11 +52,13 @@ void agyuMozgatasa(int* agyu, char irany)
 	if (irany=='d' && agyu[1]<JSZ) for (int i=0;i<3;i++) agyu[i]++;
 }
 
+#define HELY_BALRA ("  ")
+
 void teglakRajzolasa(tabla& teglak, int i)
 {
-#define TABLA_SZELE ((i==teglak.utolsoSor?char(UTOLSO_SOR_JEL):char(FUGGOLEGES)))
+#define TABLA_SZELE (i==teglak.utolsoSor?char(UTOLSO_SOR_JEL):char(FUGGOLEGES))
 
-	i<10 ? std::cout<<" "<<i : std::cout<<i;	//debug
+	std::cout<<(i<10?" ":"")<<i;
 	std::cout<<TABLA_SZELE;
 	for (int j=0;j<JSZ;j++) std::cout<<char(teglak.tegla[i][j]);
 	std::cout<<TABLA_SZELE;
@@ -59,14 +67,13 @@ void teglakRajzolasa(tabla& teglak, int i)
 #undef TABLA_SZELE
 }
 
-void kepernyoRajzolasa(tabla& teglak, int* agyu, bool& valtozas, ull gameTick)
+void kepernyoRajzolasa(tabla& teglak, int* agyu, bool& valtozas, long pontszam)
 {
 	system("cls");
 
 	// tabla teteje
-	std::cout<<"   ";	//debug
-	for (int i=0;i<JSZ;i++) std::cout<<i%10;	//debug
-	std::cout<<" "<<gameTick<<"|"<<gameTick%ONETICK<<std::endl<<"  ";	//debug
+	std::cout<<HELY_BALRA<<"EREDMENY: "<<pontszam<<" pont"<<std::endl;
+	std::cout<<"  ";
 	for (int i=0;i<JSZ+2;i++)
 	{
 		if (i==0) std::cout<<char(BAL_FELSO_SAROK);
@@ -80,18 +87,18 @@ void kepernyoRajzolasa(tabla& teglak, int* agyu, bool& valtozas, ull gameTick)
 	for (int i=0;i<teglak.legfelsoSor;i++) teglakRajzolasa(teglak, i);
 
 	// tabla alja + agyucso
-	std::cout<<"  ";	//debug
+	std::cout<<HELY_BALRA;
 	for (int i=0;i<JSZ+2;i++)
 	{
 		if (i==0) std::cout<<char(BAL_ALSO_SAROK);
 		else if (i==JSZ+1) std::cout<<char(JOBB_ALSO_SAROK);
-		else if (i==agyu[1]) std::cout<<char(AGYUCSO);
+		else if (i==agyu[1]) std::cout<<char(AGYU_CSO);
 		else std::cout<<char(VIZSZINTES);
 	}
 	std::cout<<std::endl;
 
 	// agyu talp
-	std::cout<<"  ";	//debug
+	std::cout<<HELY_BALRA;
 	for (int i=0;i<JSZ+2;i++)
 	{
 		if (i==agyu[0]) std::cout<<char(AGYU_TALP_BAL);
@@ -99,9 +106,11 @@ void kepernyoRajzolasa(tabla& teglak, int* agyu, bool& valtozas, ull gameTick)
 		else if (i==agyu[2]) std::cout<<char(AGYU_TALP_JOBB);
 		else std::cout<<" ";
 	}
-	std::cout<<std::endl<<"agyu[3]:("<<agyu[0]<<","<<agyu[1]<<","<<agyu[2]<<")"<<std::endl;	//debug
+	std::cout<<std::endl<<std::endl;
 	valtozas=false;
 }
+
+#undef HELY_BALRA
 
 void tablaInicializalasa(tabla& teglak)
 {
@@ -124,14 +133,21 @@ void leptet(int& valtozo, int hatarertek, char irany)
 	}
 }
 
+void teglaBerakas(tabla& teglak, int sor, int oszlop, byte ujtegla)
+{
+	teglak.tegla[sor][oszlop]=ujtegla;
+	teglak.tegla[sor][oszlop+1]=ujtegla;
+}
+
 void teglaGeneralas(tabla& teglak, bool& valtozas)
 {
 	leptet(teglak.legfelsoSor,JM,'-');
-	for (int i=0;i<JSZ;i++)
+	for (int i=0;i<JSZ-2;i+=2)
 	{
-		unsigned char T=rand()%3+176;
+		byte T=rand()%3+176;
 		// ide meg kell majd valami, amitol gyakoribb lesz a "vekony" tegla (176)...
-		teglak.tegla[teglak.legfelsoSor][i]=T;
+//		teglak.tegla[teglak.legfelsoSor][i]=T;
+		teglaBerakas(teglak,teglak.legfelsoSor,i,T);
 	}
 	valtozas=true;
 }
@@ -139,18 +155,20 @@ void teglaGeneralas(tabla& teglak, bool& valtozas)
 void loves(tabla& teglak, int* agyu, bool& valtozas, long& pontszam)
 {
 #define AGYUCSO (agyu[1]-1)
-	// itt esetleg gond lehet az ellenorzessel,
-	// mert ha pl. a legfelso sor 1 az utolso sor 0 akkor nem mukodik.
-	int i=teglak.utolsoSor;
-// d	std::cout<<"LFS:"<<teglak.legfelsoSor<<"|"<<teglak.tegla[i][agyu[1]-1]<<std::endl;
-	while (teglak.tegla[i][AGYUCSO]==' ' && i>teglak.legfelsoSor){std::cout<<"i="<<i<<std::endl;
-		leptet(i,JM,'-');
-	}
 
-	std::cout<<"i talalat:"<<i<<std::endl;
-	// ide kell pontszamitas
-	if (teglak.tegla[i][AGYUCSO]==177 || teglak.tegla[i][AGYUCSO]==178) teglak.tegla[i][AGYUCSO]--;
-	else if (teglak.tegla[i][AGYUCSO]==176) teglak.tegla[i][AGYUCSO]=' ';
+	int i=teglak.utolsoSor;
+	while (teglak.tegla[i][AGYUCSO]==' ' && i>teglak.legfelsoSor) leptet(i,JM,'-');
+
+	if (teglak.tegla[i][AGYUCSO]==TEGLA2 || teglak.tegla[i][AGYUCSO]==TEGLA3)
+	{
+		teglak.tegla[i][AGYUCSO]--;
+		pontszam+=100;
+	}
+	else if (teglak.tegla[i][AGYUCSO]==TEGLA1)
+	{
+		teglak.tegla[i][AGYUCSO]=' ';
+		pontszam+=100;
+	}
 	if (i==teglak.utolsoSor)
 	{
 		bool nincsTegla=true;
@@ -166,14 +184,14 @@ void loves(tabla& teglak, int* agyu, bool& valtozas, long& pontszam)
 		if (nincsTegla) leptet(teglak.utolsoSor,JM,'-');
 	}
 	valtozas=true;
-// d	std::cin.get();
+
 #undef AGYUCSO
 }
 
 bool kerdes(std::string szoveg)
 {
 	bool valasz=false;
-	unsigned char reakcio='0';
+	byte reakcio='0';
 	std::cout<<szoveg;
 	std::cin>>reakcio;
 	if (reakcio!='y' && reakcio!='i' && reakcio!='Y' && reakcio!='I') valasz=false;
@@ -189,34 +207,55 @@ bool vegeEllenorzes(tabla& teglak)
 	return gameOver;	
 }
 
-int main()
+int inditasiParameterek(int c, char *v[])
 {
-	srand(time(NULL));
-	tabla teglak;
-	long pontszam;
-	int agyu[3]={ 14,15,16 };
-	ull gameTick=0;
-	char parancs=0;
-	bool valtozas=true;
-	bool jatekVege=false;
-
-	tablaInicializalasa(teglak);
-
-	while (!jatekVege)
+	int vissza;
+	char *p;
+	if (c>2)
 	{
-		// kell valami rendes idomeres, hogy ne a processzor sebessegetol fuggjon
-		if (gameTick%ONETICK==0) teglaGeneralas(teglak, valtozas);
-		if (valtozas) kepernyoRajzolasa(teglak, agyu, valtozas, gameTick);
-		parancs=jatekosIranyitasa(valtozas);
-		jatekVege=vegeEllenorzes(teglak);
-		if (parancs!=0 && !jatekVege)
-		{
-			if (parancs==27) jatekVege=kerdes("Kilepsz? ");
-			else if (parancs==32) loves(teglak, agyu, valtozas, pontszam);
-			else agyuMozgatasa(agyu, parancs);
-		}
-		gameTick++;
+		std::cout<<"Hiba! Tul sok inditasi parameter!\n"
+			<<"A program parameter nelkul vagy csak egy parameterrel indithato:\n\n"
+			<<v[0]<<" <tickSpeed>\n\n"
+			<<"tickSpeed: egy idoegyseg hossza programciklusban kifejezve (default: 350000)"<<std::endl;
+		vissza=0;
 	}
-//	std::cout<<"\nVEGE A JATEKNAK"<<std::endl;
+	if (c==2) vissza=strtol(v[1],&p,0);
+	if (c==1) vissza=DEFAULT_TICKSPEED;
+	return vissza;
+}
+
+int main(int argc, char** argv)
+{
+	int tickSpeed = inditasiParameterek(argc, argv);
+	if (tickSpeed!=0)
+	{
+		srand(time(NULL));
+		tabla teglak;
+		long pontszam=0;
+		int agyu[3]={ 14,15,16 };
+		ull gameTick=0;
+		char parancs=0;
+		bool valtozas=true;
+		bool jatekVege=false;
+
+		tablaInicializalasa(teglak);
+
+		while (!jatekVege)
+		{
+			// kell valami rendes idomeres, hogy ne a processzor sebessegetol fuggjon
+			if (gameTick%tickSpeed==0) teglaGeneralas(teglak, valtozas);
+			if (valtozas) kepernyoRajzolasa(teglak, agyu, valtozas, pontszam);
+			parancs=jatekosIranyitasa(valtozas);
+			jatekVege=vegeEllenorzes(teglak);
+			if (parancs!=0 && !jatekVege)
+			{
+				if (parancs==27) jatekVege=kerdes("Kilepsz? ");
+				else if (parancs==32) loves(teglak, agyu, valtozas, pontszam);
+				else agyuMozgatasa(agyu, parancs);
+			}
+			gameTick++;
+		}
+		//	std::cout<<"\nVEGE A JATEKNAK"<<std::endl;
+	}
 	return 0;
 }
