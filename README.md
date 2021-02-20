@@ -11,3 +11,4 @@ vagy elfogynak a téglák, azaz a játékos ki tudja lőni az összeset.
   - Ágyú mozgatása: **`A`**, **`D`**
   - Lövés: **`SPACE`**
   - Szünet/kilépés: **`ESC`**
+- A téglák "keménysége" különböző. A keményebb téglákra többször is rá kell lőni.
