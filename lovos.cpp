@@ -1,4 +1,13 @@
-﻿#include <iostream>
+﻿/*
+ *	QBZ - Lövős
+ * 
+ * 	Kísérleti projekt egy egyszerű konzolos játékra
+ *
+ * 	Irányítás: A, D, SPACE, ESC
+ *
+*/
+
+#include <iostream>
 #include <conio.h>
 #include <string>
 #include <iomanip>
@@ -12,20 +21,20 @@
 #define JM 15					// Jatekter magassaga
 
 // rajzolo karakterek
-#define FUGGOLEGES 179			// - Jatekter függőleges oldala
-#define VIZSZINTES 196			// ¦ Jatekter vízszintes oldala
-#define BAL_FELSO_SAROK 218		// - Jatekter bal felso sarka
-#define JOBB_FELSO_SAROK 191		// ¬ Jatekter jobb felso sarka
-#define BAL_ALSO_SAROK 192		// L Jatekter bal also sarka
-#define JOBB_ALSO_SAROK 217		// - Jatekter jobb also sarka
-#define UTOLSO_SOR_JEL 197
-#define AGYU_CSO 186			// agyucso
-#define AGYU_TALP_BAL 201
-#define AGYU_TALP_KOZEP 202
-#define AGYU_TALP_JOBB 187
-#define TEGLA1 176
-#define TEGLA2 177
-#define TEGLA3 178
+#define FUGGOLEGES 179				// - Játéktér függőleges oldala
+#define VIZSZINTES 196				// ¦ Játéktér vízszintes oldala
+#define BAL_FELSO_SAROK 218			// - Játéktér bal felso sarka
+#define JOBB_FELSO_SAROK 191			// ¬ Játéktér jobb felso sarka
+#define BAL_ALSO_SAROK 192			// L Játéktér bal also sarka
+#define JOBB_ALSO_SAROK 217			// - Játéktér jobb also sarka
+#define UTOLSO_SOR_JEL 197			// + Ez jelzi az utolsó sort
+#define AGYU_CSO 186				// ¦ Ágyúcső
+#define AGYU_TALP_BAL 201			// - Ágyútalp bal széle
+#define AGYU_TALP_KOZEP 202			// ¦ Ágyútalp közepe
+#define AGYU_TALP_JOBB 187			// ¬ Ágyútalp jobb széle
+#define TEGLA1 176				// - Vékony tégla
+#define TEGLA2 177				// - Közepes tégla
+#define TEGLA3 178				// - Vastag tégla
 
 typedef unsigned long long ull;
 typedef unsigned char byte;
@@ -133,21 +142,14 @@ void leptet(int& valtozo, int hatarertek, char irany)
 	}
 }
 
-void teglaBerakas(tabla& teglak, int sor, int oszlop, byte ujtegla)
-{
-	teglak.tegla[sor][oszlop]=ujtegla;
-	teglak.tegla[sor][oszlop+1]=ujtegla;
-}
-
 void teglaGeneralas(tabla& teglak, bool& valtozas)
 {
 	leptet(teglak.legfelsoSor,JM,'-');
-	for (int i=0;i<JSZ-2;i+=2)
+	for (int i=0;i<JSZ;i+=1)
 	{
 		byte T=rand()%3+176;
 		// ide meg kell majd valami, amitol gyakoribb lesz a "vekony" tegla (176)...
-//		teglak.tegla[teglak.legfelsoSor][i]=T;
-		teglaBerakas(teglak,teglak.legfelsoSor,i,T);
+		teglak.tegla[teglak.legfelsoSor][i]=T;
 	}
 	valtozas=true;
 }
@@ -156,9 +158,12 @@ void loves(tabla& teglak, int* agyu, bool& valtozas, long& pontszam)
 {
 #define AGYUCSO (agyu[1]-1)
 
+	// Alulrol az elso tegla keresese
+	// abban az oszlopban, ahol az agyucso van
 	int i=teglak.utolsoSor;
 	while (teglak.tegla[i][AGYUCSO]==' ' && i>teglak.legfelsoSor) leptet(i,JM,'-');
 
+	// A megtalalt tegla kilovese
 	if (teglak.tegla[i][AGYUCSO]==TEGLA2 || teglak.tegla[i][AGYUCSO]==TEGLA3)
 	{
 		teglak.tegla[i][AGYUCSO]--;
@@ -169,6 +174,9 @@ void loves(tabla& teglak, int* agyu, bool& valtozas, long& pontszam)
 		teglak.tegla[i][AGYUCSO]=' ';
 		pontszam+=100;
 	}
+
+	// Ha a kiloves az utolso sorban tortent, akkor
+	// annak ellenorzese, hogy van-e meg tegla az utolso sorban
 	if (i==teglak.utolsoSor)
 	{
 		bool nincsTegla=true;
@@ -178,9 +186,12 @@ void loves(tabla& teglak, int* agyu, bool& valtozas, long& pontszam)
 			if (teglak.tegla[i][s]!=' ') nincsTegla=false;
 			s++;
 		}
-		// ha az utolso sor eleve a legfelso sor volt,
-		// akkor nem kell leptetni, mert akkor vege a jateknak
-		// kiveve, ha a jatekos nyerni akar, ha kitakaritotta a tablat
+		// Ha kiutult az utolso sor, akkor egyel feljebb lepteti.
+		// - Ha az utolso sor egyben a legfelso sor is,
+		//   akkor gyozelemmel er veget a jatek.
+		// - Ha az a cel, hogy "vegtelen" sokaig lehessen jatszani
+		//   akkor nem kell leptetni az utolso sort,
+		//   ha az egyben a legfelso sor is.
 		if (nincsTegla) leptet(teglak.utolsoSor,JM,'-');
 	}
 	valtozas=true;
