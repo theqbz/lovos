@@ -8,7 +8,7 @@
 - A játék végetér, ha a téglák "leesnek a földre" azaz a legalsó tégla leér az ágyú magasságába  
 vagy elfogynak a téglák, azaz a játékos ki tudja lőni az összeset.
 - A játék billentyűzetről irányítható:
-  - Ágyú mozgatása: **`A`**, **`D`**
+  - Ágyú mozgatása: **`a`**, **`d`**
   - Lövés: **`SPACE`**
   - Szünet/kilépés: **`ESC`**
 - A téglák "keménysége" különböző. A keményebb téglákra többször is rá kell lőni.
