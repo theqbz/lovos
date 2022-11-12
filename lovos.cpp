@@ -130,12 +130,12 @@ void tablaInicializalasa(tabla& teglak)
 
 void leptet(int& valtozo, int hatarertek, char irany)
 {
-	if (irany='-')
+	if (irany=='-')
 	{
 		if (valtozo==0) valtozo=hatarertek-1;
 		else valtozo--;
 	}
-	else if (irany='+')
+	else if (irany=='+')
 	{
 		if (valtozo==hatarertek) valtozo=0;
 		else valtozo++;
@@ -215,7 +215,7 @@ bool vegeEllenorzes(tabla& teglak)
 	bool gameOver=false;
 	if (teglak.utolsoSor+1==JM && teglak.legfelsoSor==0) gameOver=true;
 	else if (teglak.utolsoSor+1==teglak.legfelsoSor) gameOver=true;
-	return gameOver;	
+	return gameOver;
 }
 
 int inditasiParameterek(int c, char *v[])
