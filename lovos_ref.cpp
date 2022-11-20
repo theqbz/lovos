@@ -8,9 +8,8 @@
 */
 
 #include <iostream>
-#include <conio.h>
 #include <string>
-#include <iomanip>
+#include <conio.h>
 #include <stdlib.h>
 
 // EGY IDŐEGYSÉG (a játékban, programciklusban kifejezve)
@@ -40,13 +39,14 @@
 // TALÁLATÉRT ADHATÓ PONT
 #define ALAP_PONT        100
 
-typedef unsigned long long  ull;
-typedef unsigned char       byte;
+using std::string;
+using std::cout;
+using std::cin;
 
 struct Agyu
 {
-    byte agyucso;
-    char parancs;
+    uint8_t agyucso;
+    uint8_t parancs;
 
     Agyu()
     {
@@ -75,11 +75,11 @@ struct Agyu
 
 struct Tabla
 {
-    byte tegla[JM][JSZ];
-    byte legfelsoSor;           // aktuálisan a tábla legtetején lévő sor
-    byte legalsoSor;            // aktuálisan a tábla legalján lévő sor
-    byte utolsoSor;             // aktuálisan a legalsó, téglákat tartalmazó sor
-    bool valtozas;
+    uint8_t tegla[JM][JSZ];
+    uint8_t legfelsoSor;           // aktuálisan a tábla legtetején lévő sor
+    uint8_t legalsoSor;            // aktuálisan a tábla legalján lévő sor
+    uint8_t utolsoSor;             // aktuálisan a legalsó, téglákat tartalmazó sor
+    bool    valtozas;
 
     Tabla()
     {
@@ -87,28 +87,28 @@ struct Tabla
         legalsoSor  = JM-1;
         utolsoSor   = JM-1;
         valtozas    = false;
-        for (int s = 0; s < JM; s++) for (int o = 0; o < JSZ; o++) tegla[s][o] = ' ';
+        for (uint8_t s = 0; s < JM; s++) for (uint8_t o = 0; o < JSZ; o++) tegla[s][o] = ' ';
     }
 
     void ujSor()
     {
         _leptet(legfelsoSor, JM, '-');
         _leptet(legalsoSor, JM, '-');
-        for (int o = 0; o < JSZ; o++) tegla[legfelsoSor][o] = rand() % 3 + TEGLA1; 
+        for (uint8_t o = 0; o < JSZ; o++) tegla[legfelsoSor][o] = rand() % 3 + TEGLA1; 
         valtozas = true;
     }
 
-    long loves(const Agyu& agyu)
+    uint64_t loves(const Agyu& agyu)
     {
-        byte sor  = _legalsoTeglaSora(agyu.agyucso);
-        long pont = _teglaKilovese(sor, agyu.agyucso);
+        uint8_t  sor  = _legalsoTeglaSora(agyu.agyucso);
+        uint64_t pont = _teglaKilovese(sor, agyu.agyucso);
         if (sor == utolsoSor && _utolsoSorKiurult()) _leptet(utolsoSor, JM, '-');
         return pont;
     }
 
     private:
 
-    void _leptet(byte& valtozo, const int hatar, const char irany)
+    void _leptet(uint8_t& valtozo, const uint8_t hatar, const uint8_t irany)
     {
         if (irany == '-') {
             if (valtozo == 0) valtozo=hatar - 1;
@@ -120,14 +120,14 @@ struct Tabla
         }
     }
 
-    const byte _legalsoTeglaSora(const byte agyucso)
+    const uint8_t _legalsoTeglaSora(const uint8_t agyucso)
     {
-        byte s = utolsoSor;
+        uint8_t s = utolsoSor;
         while (tegla[s][agyucso] == ' ' && s > legfelsoSor) _leptet(s,JM,'-');
         return s;
     }
 
-    long _teglaKilovese(byte s, byte a)
+    uint64_t _teglaKilovese(uint8_t s, uint8_t a)
     {
         if (tegla[s][a] == TEGLA2 || tegla[s][a] == TEGLA3) {
             tegla[s][a]--;
@@ -143,7 +143,7 @@ struct Tabla
 
     const bool _utolsoSorKiurult()
     {
-        byte o = 0;
+        uint8_t o = 0;
         while (o < JSZ && tegla[utolsoSor][o] == ' ') o++;
         if (o == JSZ) return true;
         return false;
@@ -152,14 +152,15 @@ struct Tabla
 
 struct Jatek
 {
-    long pont;
+    uint64_t pont;
 
     Jatek(int argc, char** argv)
     {
-        pont   = 0;
-        _tick  = 0;
-        _vege  = false;
-        _speed = _inditasiParameterek(argc, argv);
+        pont      = 0;
+        _tick     = 0;
+        _vege     = false;
+        _eredmeny = 0;
+        _speed    = _inditasiParameterek(argc, argv);
     }
 
     const bool ido()
@@ -170,36 +171,36 @@ struct Jatek
 
     void kepRajzolasa(Tabla& tabla, const Agyu& agyu)
     {
-        byte agyucso    = agyu.agyucso+1;
-        std::string kep = "\0";
+        uint8_t agyucso = agyu.agyucso+1;
+        string  kep     = "\0";
         kep += "  EREDMENY: "+std::to_string(pont)+" pont\n  ";   // eredményjelző
         kep += BAL_FELSO_SAROK;                                   // felső szegély
-        for (int o=1; o < JSZ+1; o++) kep += VIZSZINTES;
+        for (uint8_t o=1; o < JSZ+1; o++) kep += VIZSZINTES;
         kep += JOBB_FELSO_SAROK;
         kep += "\n";                                              // játéktér
-        for (int s=tabla.legfelsoSor; s < JM; s++) _teglakRajzolasa(tabla, s, kep);
-        for (int s=0; s < tabla.legfelsoSor; s++) _teglakRajzolasa(tabla, s, kep);
+        for (uint8_t s=tabla.legfelsoSor; s < JM; s++) _teglakRajzolasa(tabla, s, kep);
+        for (uint8_t s=0; s < tabla.legfelsoSor; s++) _teglakRajzolasa(tabla, s, kep);
         kep += "  ";
         kep += BAL_ALSO_SAROK;                                    // alsó szegély
-        for (int o=1; o < agyucso; o++) kep += VIZSZINTES;
+        for (uint8_t o=1; o < agyucso; o++) kep += VIZSZINTES;
         kep += AGYUCSO;
-        for (int o=agyucso+1; o < JSZ+1; o++) kep += VIZSZINTES;
+        for (uint8_t o=agyucso+1; o < JSZ+1; o++) kep += VIZSZINTES;
         kep += JOBB_ALSO_SAROK;
         kep += "\n  ";
-        for (int o=0; o < agyucso-1; o++) kep += " ";             // ágyú talp
+        for (uint8_t o=0; o < agyucso-1; o++) kep += " ";         // ágyú talp
         kep += AGYUTALP_BAL;
         kep += AGYUTALP_KOZEP;
         kep += AGYUTALP_JOBB;
-        for (int o=agyucso+2; o < JSZ; o++) kep += " ";
+        for (uint8_t o=agyucso+2; o < JSZ; o++) kep += " ";
         kep += "\n\n";
         system("cls");                                            // kiírás
-        std::cout << kep;
+        cout << kep;
         tabla.valtozas = false;
     }
 
     void kilepes()
     {
-        if (_kerdes("Kilepsz? ")) _vege=true;
+        if (_kerdes("Kilepsz? ")) _vege = true;
     }
 
     const bool vege(const Tabla& tabla)
@@ -208,53 +209,67 @@ struct Jatek
         else return _vege || _vegeEllenorzes(tabla);
     }
 
+    const void eredmeny()
+    {
+        if (_eredmeny == 1) cout << "\nGratulalok, NYERTEL! :-)\n";
+        if (_eredmeny == 2) cout << "\nSajnos vesztettel :-(\n";
+    }
+
     private:
 
-    ull  _tick;
-    long _speed;
-    bool _vege;
+    uint8_t  _eredmeny;
+    uint64_t _tick;
+    uint64_t _speed;
+    bool     _vege;
 
-    void _teglakRajzolasa(const Tabla& tabla, const int s, std::string& kep)
+    void _teglakRajzolasa(const Tabla& tabla, const uint8_t s, string& kep)
     {
         kep += (s < 10 ? " " : "") + std::to_string(s);
         kep += _tablaSzele(tabla, s);
-        for (int o=0; o < JSZ; o++) kep += char(tabla.tegla[s][o]);
+        for (uint8_t o=0; o < JSZ; o++) kep += char(tabla.tegla[s][o]);
         kep += _tablaSzele(tabla, s);
         kep += "\n";
     }
 
-    const char _tablaSzele(const Tabla& tabla, const int s)
+    const uint8_t _tablaSzele(const Tabla& tabla, const uint8_t s)
     {
         return s == tabla.utolsoSor ? UTOLSO_SOR_JEL : FUGGOLEGES;
     }
 
     const bool _vegeEllenorzes(const Tabla& tabla)
     {
-        if (tabla.utolsoSor + 1 == tabla.legfelsoSor) return true;
-        else if (tabla.utolsoSor == tabla.legalsoSor) return true;
+        if (tabla.utolsoSor + 1 == tabla.legfelsoSor) {
+            _eredmeny = 1;
+            return true;
+        }
+        else if (tabla.utolsoSor == tabla.legalsoSor) {
+            _eredmeny = 2;
+            return true;
+        }
+        _eredmeny = 0;
         return false;
     }
 
-    const bool _kerdes(const std::string szoveg)
+    const bool _kerdes(const string szoveg)
     {
-        byte reakcio='0';
-        std::cout << szoveg;
-        std::cin >> reakcio;
+        uint8_t reakcio='0';
+        cout << szoveg;
+        cin >> reakcio;
         if (reakcio != 'y' && reakcio != 'i' && reakcio != 'Y' && reakcio != 'I') return false;
         else return true;
     }
 
-    long _inditasiParameterek(int c, char *v[])
+    uint64_t _inditasiParameterek(int c, char* v[])
     {
-        char *p;
+        char* p;
         if (c == 1) return DEFAULT_SPEED;
-        if (c == 2) return strtol(v[1], &p, 0);
+        if (c == 2) return strtoll(v[1], &p, 0);
         if (c > 2) {
             _vege = true;
-            std::cout << "\nHiba: tul sok inditasi parameter! "
-                      << "A program parameter nelkul vagy csak egy parameterrel indithato.\n\n"
-                      << "\t" << v[0] << " <tickSpeed>\n\n"
-                      << "tickSpeed: egy idoegyseg hossza programciklusban kifejezve (default: 350000)\n";
+            cout << "\nHiba: tul sok inditasi parameter! "
+                 << "A program parameter nelkul vagy csak egy parameterrel indithato.\n\n"
+                 << "\t" << v[0] << " <tickSpeed>\n\n"
+                 << "tickSpeed: egy idoegyseg hossza programciklusban kifejezve (default: 350000)\n";
         }
         return DEFAULT_SPEED;
     }
@@ -273,5 +288,6 @@ int main(int argc, char** argv)
         if (agyu.parancs == 32) jatek.pont += tabla.loves(agyu);
         if (agyu.parancs == 27) jatek.kilepes();
     }
+    jatek.eredmeny();
     return 0;
 }
